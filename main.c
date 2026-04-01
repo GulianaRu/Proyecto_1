@@ -3,6 +3,8 @@
 #include <string.h>
 #include <time.h>
 #include <stdbool.h>
+#include "deportista.h"
+#include "ordenamientos.h"
 
 #define MAX_NOMBRE 50
 #define NUM_EQUIPOS 5
@@ -51,8 +53,24 @@ int main() {
             case 1:
                 printf("\nGenerando datos \n");
                 break;
-            case 2:
-                printf("\nOrdenar Deportistas\n");
+           case 2:
+                if (cantidadDeportistas == 0) {
+                    printf("\nPrimero debes generar datos\n");
+                    break;
+                }
+
+                int tipo;
+                printf("\n1. Bubble Sort");
+                printf("\n2. Insertion Sort");
+                printf("\nSeleccione algoritmo: ");
+                scanf("%d", &tipo);
+
+                if (tipo == 1)
+                    bubbleSort(deportistas, cantidadDeportistas);
+                else
+                    insertionSort(deportistas, cantidadDeportistas);
+
+                printf("\nDatos ordenados correctamente\n");
                 break;
             case 3:
                 printf("\nBuscar Deportista (ID)\n");
