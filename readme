@@ -1,0 +1,4 @@
+## Compilacion
+Para compilar se debe ejecutar
+- make
+- make run
