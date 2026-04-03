@@ -50,54 +50,92 @@ int main(void) {
                 cargarCSV(&mis_deportistas, &cantidad_actual, arg1);
             }
         } 
+
         else if (strcmp(comando, "ordenar") == 0) {
             if (num_args < 2) {
                 printf("%sUso: ordenar <bubble|insertion|selection|cocktail>%s\n", ROJO, RESET);
             } else {
-                if (strcmp(arg1, "bubble") == 0) {
-                    bubbleSort(mis_deportistas, cantidad_actual);
-                } else if (strcmp(arg1, "insertion") == 0) {
-                    insertionSort(mis_deportistas, cantidad_actual);
-                } else if (strcmp(arg1, "selection") == 0) {
-                    selectionSort(mis_deportistas, cantidad_actual);
-                } else if (strcmp(arg1, "cocktail") == 0) {
-                    cocktailSort(mis_deportistas, cantidad_actual);
-                } else {
-                    printf("%sAlgoritmo no reconocido.%s\n", ROJO, RESET);
-                }
+                int criterio;
+                printf("Elija campo (1:ID, 2:Nombre, 3:Equipo, 4:Puntaje, 5:Competencias): ");
+                scanf("%d", &criterio);
+                getchar(); // Consumir salto de linea
+
+                if (strcmp(arg1, "bubble") == 0) bubbleSort(mis_deportistas, cantidad_actual, criterio);
+                else if (strcmp(arg1, "insertion") == 0) insertionSort(mis_deportistas, cantidad_actual, criterio);
+                else if (strcmp(arg1, "selection") == 0) selectionSort(mis_deportistas, cantidad_actual, criterio);
+                else if (strcmp(arg1, "cocktail") == 0) cocktailSort(mis_deportistas, cantidad_actual, criterio);
+                else printf("%sAlgoritmo no reconocido.%s\n", ROJO, RESET);
             }
-        }  
+        } 
         else if (strcmp(comando, "busqueda") == 0) {
             if (num_args < 2) {
                 printf("%sUso: busqueda <secuencial|binaria>%s\n", ROJO, RESET);
             } else {
-                char nombre[MAX_NOMBRE];
-                printf("%sIngrese el nombre a buscar: %s", CYAN, RESET);
+                int idBuscar;
+                printf("%sIngrese el ID a buscar: %s", CYAN, RESET);
                 
-                // Limpiamos el buffer por si quedo un \n de antes
+                // Limpiamos el buffer y leemos un número
                 fflush(stdin); 
-                fgets(nombre, sizeof(nombre), stdin);
-                nombre[strcspn(nombre, "\n")] = 0; // Quitar el enter
+                if (scanf("%d", &idBuscar) != 1) {
+                    printf("Error leyendo el ID.\n");
+                }
+                getchar(); // Consumir el \n que deja scanf
 
                 if (strcmp(arg1, "secuencial") == 0) {
-                    busquedaSecuencial(mis_deportistas, cantidad_actual, nombre);
+                    busquedaSecuencial(mis_deportistas, cantidad_actual, idBuscar);
                 } else if (strcmp(arg1, "binaria") == 0) {
-                    printf("%s[INFO] Asegurese que los datos esten ordenados.%s\n", AMARILLO, RESET);
-                    busquedaBinaria(mis_deportistas, cantidad_actual, nombre);
+                    printf("%s[INFO] Asegurese que los datos esten ordenados POR ID.%s\n", AMARILLO, RESET);
+                    busquedaBinaria(mis_deportistas, cantidad_actual, idBuscar);
                 }
             }
         }
         else if (strcmp(comando, "ranking") == 0 ) {
-            //
+            if (num_args < 2) {
+                printf("%sUso: ranking <N> (ej: ranking 5)%s\n", ROJO, RESET);
+            } else {
+                int n_top = atoi(arg1);
+                if (n_top > cantidad_actual) n_top = cantidad_actual;
+                if (n_top <= 0) n_top = 5;
 
-        } else if (strcmp(comando, "all") == 0 ) {
+                char algo[20];
+                printf("%sElija el algoritmo para ordenar el ranking (bubble, insertion, selection, cocktail): %s", AMARILLO, RESET);
+                scanf("%s", algo);
+                getchar(); // Consumir salto de linea
+
+                // Ordenamos por Puntaje (criterio 4)
+                if (strcmp(algo, "bubble") == 0) bubbleSort(mis_deportistas, cantidad_actual, 4);
+                else if (strcmp(algo, "insertion") == 0) insertionSort(mis_deportistas, cantidad_actual, 4);
+                else if (strcmp(algo, "selection") == 0) selectionSort(mis_deportistas, cantidad_actual, 4);
+                else if (strcmp(algo, "cocktail") == 0) cocktailSort(mis_deportistas, cantidad_actual, 4);
+                else {
+                    printf("%sAlgoritmo no reconocido. Usando Selection Sort por defecto.%s\n", ROJO, RESET);
+                    selectionSort(mis_deportistas, cantidad_actual, 4);
+                }
+
+                printf("\n%s=== TOP %d MEJORES DEPORTISTAS ===%s\n", AMARILLO, n_top, RESET);
+                printf("%s%-5s %-15s %-15s %-10s %-5s%s\n", CYAN, "ID", "NOMBRE", "EQUIPO", "PUNTAJE", "COMP.", RESET);
+                printf("------------------------------------------------------------\n");
+                
+                // Mostrar de atrás para adelante (de mayor a menor puntaje)
+                for (int i = cantidad_actual - 1; i >= cantidad_actual - n_top; i--) {
+                    printf("%-5d %-15s %-15s %-10.2f %-5d\n", 
+                           mis_deportistas[i].id, mis_deportistas[i].nombre, 
+                           mis_deportistas[i].equipo, mis_deportistas[i].puntaje, 
+                           mis_deportistas[i].competencias);
+                }
+                printf("------------------------------------------------------------\n");
+            }
+        }
+	else if (strcmp(comando, "all") == 0 ) {
             mostrarTodo(mis_deportistas, cantidad_actual);
 
-        } else if (strcmp(comando, "exit") == 0) {
+        } 
+	else if (strcmp(comando, "exit") == 0) {
             finalizar_programa();
             break;
 
-        } else {
+        } 
+	else {
             printf("%sComando o argumento invalido. Revise la sintaxis.%s\n", ROJO, RESET);
         }
     }

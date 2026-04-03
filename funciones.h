@@ -13,14 +13,14 @@ void guardarCSV(Deportista *arreglo, int cantidad, const char *nombreArchivo);
 void cargarCSV(Deportista **arreglo, int *cantidad, const char *nombreArchivo);
 void mostrarTodo(Deportista *arreglo, int cantidad);
 
-
 // ordenamiento
-void bubbleSort(Deportista *a, int n);
-void selectionSort(Deportista *a, int n);
-void insertionSort(Deportista *a, int n);
-void cocktailSort(Deportista *a, int n);
+void bubbleSort(Deportista *a, int n, int criterio);
+void selectionSort(Deportista *a, int n, int criterio);
+void insertionSort(Deportista *a, int n, int criterio);
+void cocktailSort(Deportista *a, int n, int criterio);
 
-void busquedaSecuencial(Deportista *arreglo, int cantidad, const char *nombreBuscar);
-void busquedaBinaria(Deportista *arreglo, int cantidad, const char *nombreBuscar);
+// busqueda
+void busquedaSecuencial(Deportista *arreglo, int cantidad, int idBuscar);
+void busquedaBinaria(Deportista *arreglo, int cantidad, int idBuscar);
 
 #endif

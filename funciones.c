@@ -18,9 +18,10 @@ void help() {
     printf("%sComandos disponibles:%s\n", CYAN, RESET);
     printf("%s- generar <n>: %sGenera un archivo con n deportistas aleatorios.\n", VERDE, RESET);
     printf("%s- cargar <archivo>: %sCarga los datos de deportistas desde el archivo especificado.\n", VERDE, RESET);
-    printf("%s- busqueda <nombre>: %sBusca y muestra la información del deportista con el nombre dado.\n", VERDE, RESET);
-    printf("%s- ranking <deporte>: %sMuestra el ranking de los deportistas en el deporte especificado.\n", VERDE, RESET);
-    printf("%s- all: %sMuestra la información de todos los deportistas cargados.\n", VERDE, RESET);
+    printf("%s- ordenar <algoritmo>: %sOrdena los datos (bubble, insertion, selection, cocktail). Luego pedira el criterio.\n", VERDE, RESET);
+    printf("%s- busqueda <algoritmo>: %sBusca a un deportista por su ID (secuencial o binaria).\n", VERDE, RESET);
+    printf("%s- ranking <n>: %sMuestra el top N de los deportistas usando el puntaje.\n", VERDE, RESET);
+    printf("%s- all: %sMuestra la informacion de todos los deportistas cargados.\n", VERDE, RESET);
     printf("%s- exit: %sSale del programa.\n", VERDE, RESET);
 }
 
@@ -139,15 +140,30 @@ void mostrarTodo(Deportista *arreglo, int cantidad) {
     printf("%sTotal: %d deportistas.%s\n\n", VERDE, cantidad, RESET);
 }
 
+// Retorna > 0 si a > b, < 0 si a < b, y 0 si son iguales
+int comparar(Deportista a, Deportista b, int criterio) {
+    switch(criterio) {
+        case 1: return a.id - b.id; // Ordenar por ID
+        case 2: return strcmp(a.nombre, b.nombre); // Ordenar por Nombre
+        case 3: return strcmp(a.equipo, b.equipo); // Ordenar por Equipo
+        case 4:
+            // Para floats, hay que hacer este pequeño truco
+            if (a.puntaje > b.puntaje) return 1;
+            if (a.puntaje < b.puntaje) return -1;
+            return 0;
+        case 5: return a.competencias - b.competencias; // Ordenar por Competencias
+        default: return 0;
+    }
+}
 
 // ORDENAMIENTO
 
-void bubbleSort(Deportista *a, int n) {
+void bubbleSort(Deportista *a, int n, int criterio) {
     int i, j, intercambio;
     for (i = 0; i < n - 1; i++) {
         intercambio = 0;
         for (j = 0; j < n - i - 1; j++) {
-            if (strcmp(a[j].nombre, a[j+1].nombre) > 0) {
+            if (comparar(a[j], a[j+1], criterio) > 0) {
                 Deportista temp = a[j];
                 a[j] = a[j+1];
                 a[j+1] = temp;
@@ -163,26 +179,24 @@ void selectionSort(Deportista *a, int n, int criterio) {
     for (int i = 0; i < n - 1; i++) {
         int min_idx = i;
         for (int j = i + 1; j < n; j++) {
-            int comparacion = 0;
-            if (criterio == 1) comparacion = (a[j].id < a[min_idx].id);
-            else if (criterio == 2) comparacion = (strcmp(a[j].nombre, a[min_idx].nombre) < 0);
-            else if (criterio == 3) comparacion = (a[j].puntaje < a[min_idx].puntaje);
-            
-            if (comparacion) min_idx = j;
+            if (comparar(a[j], a[min_idx], criterio) < 0) {
+                min_idx = j;
+            }
         }
-        if (min_idx != i) {
+        if (min_idx != i) { // Optimización: evitar intercambio innecesario
             Deportista temp = a[min_idx];
             a[min_idx] = a[i];
             a[i] = temp;
         }
     }
+    printf("%sOrdenado con Selection Sort (Optimizado).%s\n", VERDE, RESET);
 }
 
-void insertionSort(Deportista *a, int n) {
+void insertionSort(Deportista *a, int n, int criterio) {
     for (int i = 1; i < n; i++) {
         Deportista clave = a[i];
         int j = i - 1;
-        while (j >= 0 && strcmp(a[j].nombre, clave.nombre) > 0) {
+        while (j >= 0 && comparar(a[j], clave, criterio) > 0) {
             a[j + 1] = a[j];
             j = j - 1;
         }
@@ -191,14 +205,14 @@ void insertionSort(Deportista *a, int n) {
     printf("%sOrdenado con Insertion Sort.%s\n", VERDE, RESET);
 }
 
-void cocktailSort(Deportista *a, int n) {
+void cocktailSort(Deportista *a, int n, int criterio) {
     int intercambio = 1;
     int inicio = 0;
     int fin = n - 1;
     while (intercambio) {
         intercambio = 0;
         for (int i = inicio; i < fin; ++i) {
-            if (strcmp(a[i].nombre, a[i + 1].nombre) > 0) {
+            if (comparar(a[i], a[i + 1], criterio) > 0) {
                 Deportista temp = a[i];
                 a[i] = a[i+1];
                 a[i+1] = temp;
@@ -209,7 +223,7 @@ void cocktailSort(Deportista *a, int n) {
         intercambio = 0;
         --fin;
         for (int i = fin - 1; i >= inicio; --i) {
-            if (strcmp(a[i].nombre, a[i + 1].nombre) > 0) {
+            if (comparar(a[i], a[i + 1], criterio) > 0) {
                 Deportista temp = a[i];
                 a[i] = a[i+1];
                 a[i+1] = temp;
@@ -221,9 +235,10 @@ void cocktailSort(Deportista *a, int n) {
     printf("%sOrdenado con Cocktail Shaker Sort.%s\n", VERDE, RESET);
 }
 
-// 1. Búsqueda Secuencial (Estándar)
-// Recorre el arreglo de principio a fin. Complejidad: O(n)
-void busquedaSecuencial(Deportista *arreglo, int cantidad, const char *nombreBuscar) {
+
+// ALGORITMOS DE BÚSQUEDA (POR ID)
+
+void busquedaSecuencial(Deportista *arreglo, int cantidad, int idBuscar) {
     if (arreglo == NULL || cantidad == 0) {
         printf("%sError: No hay datos cargados.%s\n", ROJO, RESET);
         return;
@@ -231,23 +246,21 @@ void busquedaSecuencial(Deportista *arreglo, int cantidad, const char *nombreBus
 
     int encontrado = 0;
     for (int i = 0; i < cantidad; i++) {
-        if (strcmp(arreglo[i].nombre, nombreBuscar) == 0) {
+        if (arreglo[i].id == idBuscar) {
             printf("\n%s[RESULTADO ENCONTRADO - SECUENCIAL]%s\n", VERDE, RESET);
-            printf("ID: %-5d | Nombre: %-15s | Equipo: %-15s | Puntaje: %.2f\n", 
-                   arreglo[i].id, arreglo[i].nombre, arreglo[i].equipo, arreglo[i].puntaje);
+            printf("ID: %-5d | Nombre: %-15s | Equipo: %-15s | Puntaje: %.2f | Comp: %d\n", 
+                   arreglo[i].id, arreglo[i].nombre, arreglo[i].equipo, arreglo[i].puntaje, arreglo[i].competencias);
             encontrado = 1;
-            break; // Terminamos al hallar el primero
+            break; 
         }
     }
 
     if (!encontrado) {
-        printf("%sNo se encontro ningun deportista con el nombre '%s'.%s\n", ROJO, nombreBuscar, RESET);
+        printf("%sNo se encontro ningun deportista con el ID '%d'.%s\n", ROJO, idBuscar, RESET);
     }
 }
 
-// 2. Búsqueda Binaria (Versión Iterativa)
-// Requiere que el arreglo esté ordenado previamente. Complejidad: O(log n)
-void busquedaBinaria(Deportista *arreglo, int cantidad, const char *nombreBuscar) {
+void busquedaBinaria(Deportista *arreglo, int cantidad, int idBuscar) {
     if (arreglo == NULL || cantidad == 0) {
         printf("%sError: No hay datos cargados.%s\n", ROJO, RESET);
         return;
@@ -259,61 +272,24 @@ void busquedaBinaria(Deportista *arreglo, int cantidad, const char *nombreBuscar
 
     while (inicio <= fin) {
         int medio = inicio + (fin - inicio) / 2;
-        int comparacion = strcmp(arreglo[medio].nombre, nombreBuscar);
 
-        if (comparacion == 0) {
+        if (arreglo[medio].id == idBuscar) {
             printf("\n%s[RESULTADO ENCONTRADO - BINARIA]%s\n", VERDE, RESET);
-            printf("ID: %-5d | Nombre: %-15s | Equipo: %-15s | Puntaje: %.2f\n", 
-                   arreglo[medio].id, arreglo[medio].nombre, arreglo[medio].equipo, arreglo[medio].puntaje);
+            printf("ID: %-5d | Nombre: %-15s | Equipo: %-15s | Puntaje: %.2f | Comp: %d\n", 
+                   arreglo[medio].id, arreglo[medio].nombre, arreglo[medio].equipo, arreglo[medio].puntaje, arreglo[medio].competencias);
             encontrado = 1;
             break;
         }
 
-        if (comparacion < 0) {
-            inicio = medio + 1; // El nombre está en la mitad derecha
+        if (arreglo[medio].id < idBuscar) {
+            inicio = medio + 1; 
         } else {
-            fin = medio - 1;    // El nombre está en la mitad izquierda
+            fin = medio - 1;    
         }
     }
 
     if (!encontrado) {
-        printf("%sNo se encontro a '%s'. Asegurate de haber ordenado el arreglo primero.%s\n", ROJO, nombreBuscar, RESET);
+        printf("%sNo se encontro el ID '%d'. Asegurate de haber ordenado el arreglo por ID primero.%s\n", ROJO, idBuscar, RESET);
     }
 }
 
-// 1. Algoritmo Fisher-Yates para mezclar registros (Requisito pág. 2)
-void mezclarDatos(Deportista *arreglo, int n) {
-    for (int i = n - 1; i > 0; i--) {
-        int j = rand() % (i + 1);
-        Deportista temp = arreglo[i];
-        arreglo[i] = arreglo[j];
-        arreglo[j] = temp;
-    }
-}
-
-// 2. Función de Ranking (Requisito pág. 2)
-void mostrarRanking(Deportista *arreglo, int cantidad, int n_tops) {
-    if (arreglo == NULL || cantidad <= 0) return;
-    
-    // Para el ranking debemos ordenar por puntaje de mayor a menor
-    // Usaremos una adaptación de Selection Sort para no alterar el orden principal
-    Deportista *copia = (Deportista *)malloc(cantidad * sizeof(Deportista));
-    memcpy(copia, arreglo, cantidad * sizeof(Deportista));
-
-    for (int i = 0; i < cantidad - 1; i++) {
-        int max_idx = i;
-        for (int j = i + 1; j < cantidad; j++) {
-            if (copia[j].puntaje > copia[max_idx].puntaje) max_idx = j;
-        }
-        Deportista temp = copia[max_idx];
-        copia[max_idx] = copia[i];
-        copia[i] = temp;
-    }
-
-    printf("\n%s--- RANKING TOP %d DEPORTISTAS ---%s\n", CYAN, n_tops, RESET);
-    for (int i = 0; i < n_tops && i < cantidad; i++) {
-        printf("%d. %-15s - Puntaje: %.2f - Equipo: %s\n", 
-               i + 1, copia[i].nombre, copia[i].puntaje, copia[i].equipo);
-    }
-    free(copia);
-}
