@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "deportista.h"
 #include "funciones.h"
 #include "interfaz.h"
-#include "deportista.h"
 
 int main(void) {
     char linea[256];
@@ -30,13 +30,14 @@ int main(void) {
 
         } else if (strcmp(comando, "generar") == 0) {
             if (num_args < 2) {
-            printf("%sUso: generar <n>%s\n", ROJO, RESET);
+            printf("%sUso: generar <n>%s\n", ROJO, RESET); 
         } else {
             cantidad_actual = atoi(arg1);
             // Liberar memoria si ya existía algo previo
             if (mis_deportistas != NULL) free(mis_deportistas); 
             
             generarDatos(&mis_deportistas, &cantidad_actual);
+	    mezclarDatos(mis_deportistas, cantidad_actual);
             guardarCSV(mis_deportistas, cantidad_actual, "deportistas.csv");
         }
         } 
@@ -130,6 +131,17 @@ int main(void) {
             mostrarTodo(mis_deportistas, cantidad_actual);
 
         } 
+	else if (strcmp(comando, "experimento") == 0) {
+            ejecutarExperimento();
+        }
+	else if (strcmp(comando, "guardar") == 0) {
+            if (mis_deportistas == NULL || cantidad_actual == 0) {
+                printf("%sError: No hay datos en memoria para guardar. Usa 'generar' primero.%s\n", ROJO, RESET);
+            } else { // si no hay nombre de archivo escribimos 
+                char *nombre_archivo = (num_args > 1) ? arg1 : "deportistas_guardados.csv";
+                guardarCSV(mis_deportistas, cantidad_actual, nombre_archivo);
+            }
+        }
 	else if (strcmp(comando, "exit") == 0) {
             finalizar_programa();
             break;
